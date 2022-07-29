@@ -1,0 +1,32 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: heimdall
+  namespace: kube-system
+spec:
+  chart: heimdall
+  targetNamespace: default
+  repo: https://k8s-at-home.com/charts/
+  env:
+    TZ: America/Los_Angeles
+  ingress:
+    main:
+      enabled: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: heimdall-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: heimdall
+            port:
+              number: 80
