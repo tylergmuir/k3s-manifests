@@ -8,7 +8,9 @@ spec:
   targetNamespace: cert-manager
   repo: https://charts.jetstack.io
   valuesContent: |-
+    # This is to install the required CRDs during the setup.
     installCRDs: true
+    # This is to forward DNS lookups to cloudflare to ensure that lookups for txt records for DNS validation don't get routed back to an internal DNS server.
     extraArgs:
     - --dns01-recursive-nameservers-only
     - --dns01-recursive-nameservers=1.1.1.1:53

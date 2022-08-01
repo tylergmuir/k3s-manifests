@@ -12,6 +12,7 @@ spec:
     - dns01:
         cloudflare:
           email: tylergmuir@gmail.com
+          # This secret needs to be created manually since it is sensitive.
           apiTokenSecretRef:
             name: cloudflare-api-token
             key: api-token
