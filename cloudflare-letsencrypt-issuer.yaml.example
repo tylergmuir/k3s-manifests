@@ -4,14 +4,14 @@ metadata:
   name: cloudflare-letsencrypt-issuer
 spec:
   acme:
-    email: tylergmuir@gmail.com
+    email: example@email.com
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: cloudflare-letsencrypt-issuer-account-key
     solvers:
     - dns01:
         cloudflare:
-          email: tylergmuir@gmail.com
+          email: example@email.com
           # This secret needs to be created manually since it is sensitive.
           apiTokenSecretRef:
             name: cloudflare-api-token

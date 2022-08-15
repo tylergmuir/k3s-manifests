@@ -7,11 +7,19 @@ spec:
   chart: heimdall
   targetNamespace: default
   repo: https://k8s-at-home.com/charts/
-  env:
-    TZ: America/Los_Angeles
-  ingress:
-    main:
-      enabled: true
+  valuesContent: |-
+    env:
+      TZ: America/Los_Angeles
+    ingress:
+      main:
+        enabled: true
+    image:
+      tag: latest
+    persistence:
+      config:
+        enabled: true
+        mountPath: /config
+        existingClaim: heimdall-config
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -36,3 +44,15 @@ spec:
   - hosts:
     - heimdall.k3s.pstyler.dev
     secretName: heimdall-ingress-cert
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: heimdall-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 50Mi
