@@ -13,4 +13,4 @@ spec:
     # This is to forward DNS lookups to cloudflare to ensure that lookups for txt records for DNS validation don't get routed back to an internal DNS server.
     extraArgs:
     - --dns01-recursive-nameservers-only
-    - --dns01-recursive-nameservers=1.1.1.1:53
+    - --dns01-recursive-nameservers=laura.ns.cloudflare.com:53,malcolm.ns.cloudflare.com:53
