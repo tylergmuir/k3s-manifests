@@ -1,0 +1,44 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: minecraft
+  namespace: kube-system
+spec:
+  chart: app-template
+  targetNamespace: default
+  repo: https://bjw-s.github.io/helm-charts/
+  valuesContent: |-
+    image:
+      repository: marctv/minecraft-papermc-server
+      pullPolicy: IfNotPresent
+      tag: latest
+    env:
+      TZ: America/Los_Angeles
+      MEMORYSIZE: 2G
+    service:
+      main:
+        type: LoadBalancer
+        ports:
+          http:
+            enabled: false
+            port: 80
+          minecraft:
+            enabled: true
+            port: 25565
+    persistence:
+      config:
+        enabled: true
+        mountPath: /data
+        existingClaim: minecraft-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minecraft-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 500Mi
