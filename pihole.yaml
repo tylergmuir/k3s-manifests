@@ -1,0 +1,105 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: pihole
+  namespace: kube-system
+spec:
+  chart: app-template
+  targetNamespace: default
+  repo: https://bjw-s.github.io/helm-charts/
+  valuesContent: |-
+    image:
+      repository: pihole/pihole
+      tag: latest
+    env:
+    - name: TZ
+      value: America/Los_Angeles
+    - name: WEBPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: pihole
+          key: webpassword
+    - name: PIHOLE_DNS_
+      value: 192.168.2.10
+    service:
+      main:
+        ports:
+          http:
+            port: 80
+    persistence:
+      config:
+        enabled: true
+        mountPath: /etc/pihole
+        existingClaim: pihole-config
+      dnsmasq:
+        enabled: true
+        mountPath: /etc/dnsmasq.d
+        existingClaim: pihole-dnsmasq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-dns
+  labels:
+    app.kubernetes.io/name: pihole
+    app.kubernetes.io/instance: pihole
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 53
+      protocol: UDP
+      name: pihole-dns-udp
+    - port: 53
+      protocol: TCP
+      name: pihole-dns-tcp
+  selector:
+    app.kubernetes.io/name: pihole
+    app.kubernetes.io/instance: pihole
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pihole
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-letsencrypt-issuer
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: pihole.k3s.pstyler.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pihole
+            port:
+              name: http
+  tls:
+  - hosts:
+    - pihole.k3s.pstyler.dev
+    secretName: pihole-ingress-cert
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-config
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 2000Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-dnsmasq
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 10Mi
