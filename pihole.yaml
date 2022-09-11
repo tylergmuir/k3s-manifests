@@ -86,7 +86,7 @@ metadata:
   name: pihole-config
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   storageClassName: nfs
   resources:
     requests:
@@ -98,7 +98,7 @@ metadata:
   name: pihole-dnsmasq
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   storageClassName: nfs
   resources:
     requests:
