@@ -10,7 +10,7 @@ spec:
   valuesContent: |-
     image:
       repository: marctv/minecraft-papermc-server
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
       tag: latest
     env:
       TZ: America/Los_Angeles

@@ -10,7 +10,7 @@ spec:
   valuesContent: |-
     image:
       repository: nico640/docker-unms
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
       tag: latest
     env:
       TZ: America/Los_Angeles
