@@ -1,0 +1,103 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: plex
+  namespace: kube-system
+spec:
+  chart: app-template
+  targetNamespace: default
+  repo: https://bjw-s.github.io/helm-charts/
+  valuesContent: |-
+    image:
+      repository: linuxserver/plex
+      pullPolicy: Always
+      tag: latest
+    env:
+    - name: PLEX_CLAIM
+      valueFrom:
+        secretKeyRef:
+          name: plex
+          key: claim
+    service:
+      main:
+        type: LoadBalancer
+        ports:
+          http:
+            enabled: false
+            port: 80
+          plex:
+            enabled: true
+            port: 32400
+    persistence:
+      config:
+        enabled: true
+        mountPath: /config
+        existingClaim: plex-config
+      media:
+        enabled: true
+        mountPath: /media
+        existingClaim: plex-media
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plex
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-letsencrypt-issuer
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: plex.k3s.pstyler.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: plex
+            port:
+              name: plex
+  tls:
+  - hosts:
+    - plex.k3s.pstyler.dev
+    secretName: plex-ingress-cert
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-media
+spec:
+  capacity:
+    storage: 1000Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: plex-media
+  nfs:
+    path: /plex_media
+    server: qnap.lab.int
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-media
+spec:
+  storageClassName: plex-media
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000Gi
