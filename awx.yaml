@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: awx
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: awx-operator
+  namespace: kube-system
+spec:
+  chart: awx-operator
+  targetNamespace: awx
+  repo: https://ansible.github.io/awx-operator/
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+  namespace: awx
+spec:
+  postgres_storage_class: nfs
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: awx
+  namespace: awx
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-letsencrypt-issuer
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: awx.k3s.pstyler.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: awx-service
+            port:
+              name: http
+  tls:
+  - hosts:
+    - awx.k3s.pstyler.dev
+    secretName: awx-ingress-cert
